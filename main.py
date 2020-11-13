@@ -53,7 +53,7 @@ class IngredientInventory:
                 copy_ingredients.remove(i)
             else:
                 return False
-        return True
+        return bool(ingredients.ingredients)
 
     def __iter__(self):
         yield from self.ingredients
