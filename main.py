@@ -47,10 +47,10 @@ class IngredientInventory:
         return cls(ingredients)
 
     def __contains__(self, ingredients: IngredientInventory):
-        copy_ingredents = self.ingredients[:]
+        copy_ingredients = self.ingredients[:]
         for i in ingredients:
-            if i in copy_ingredents:
-                copy_ingredents.remove(i)
+            if i in copy_ingredients:
+                copy_ingredients.remove(i)
             else:
                 return False
         return True
