@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 from typing import List
+from functools import lru_cache
 
 
 class Ingredient:
@@ -9,18 +10,22 @@ class Ingredient:
         self.tier = tier
 
     @classmethod
+    @lru_cache()
     def tier_0(cls):
         return Ingredient(0)
 
     @classmethod
+    @lru_cache()
     def tier_1(cls):
         return Ingredient(1)
 
     @classmethod
+    @lru_cache()
     def tier_2(cls):
         return Ingredient(2)
 
     @classmethod
+    @lru_cache()
     def tier_3(cls):
         return Ingredient(3)
 

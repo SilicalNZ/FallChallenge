@@ -13,6 +13,8 @@ class TestIngredient(unittest.TestCase):
         self.assertEqual(Ingredient.tier_2().tier, 2)
         self.assertEqual(Ingredient.tier_3().tier, 3)
 
+        self.assertEqual(Ingredient.tier_0(), Ingredient.tier_0())
+
     def test_Ingredient_from_multiple_returns_list(self):
         self.assertIsInstance(Ingredient.from_multiple(0, 0), list)
 
