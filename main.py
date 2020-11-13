@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import sys
 from typing import List
 
 
@@ -23,7 +26,7 @@ class Ingredient:
 
     @classmethod
     def from_multiple(cls, tier, amount):
-        return [getattr(cls, f"tier_{tier}") for _ in range(amount)]
+        return [getattr(cls, f"tier_{tier}")() for _ in range(amount)]
 
 
 class IngredientInventory:
@@ -37,6 +40,18 @@ class IngredientInventory:
             ingredients.extend(Ingredient.from_multiple(tier, amount))
 
         return cls(ingredients)
+
+    def __contains__(self, ingredients: IngredientInventory):
+        copy_ingredents = self.ingredients[:]
+        for i in ingredients:
+            if i in copy_ingredents:
+                copy_ingredents.remove(i)
+            else:
+                return False
+        return True
+
+    def __iter__(self):
+        yield from self.ingredients
 
 
 class Order(IngredientInventory):
@@ -54,6 +69,9 @@ class Order(IngredientInventory):
             id,
             price
         )
+
+    def brew(self):
+        print(f"BREW {self.id}")
 
 
 class OrderInventory:
@@ -84,6 +102,9 @@ class OrderInventory:
             actions.append(Order.from_input(delta_0, delta_1, delta_2, delta_3, action_id, price))
         return cls(actions)
 
+    def __iter__(self):
+        yield from self.recipes
+
 
 class Player(IngredientInventory):
     def __init__(self, inventory: List[Ingredient], score: int):
@@ -99,9 +120,12 @@ class Player(IngredientInventory):
             score
         )
 
+    def wait(self):
+        print("WAIT")
+
 
 class Thinker:
-    def __init__(self, player1, player2, orders: Order):
+    def __init__(self, player1: Player, player2: Player, orders: OrderInventory):
         self.perspective = player1
         self.opponent = player2
         self.orders = orders
@@ -113,13 +137,21 @@ class Thinker:
         for i in range(2):
             # inv_0: tier-0 ingredients in inventory
             # score: amount of rupees
-            players.append([int(j) for j in input().split()])
+            players.append(Player.from_input(*[int(j) for j in input().split()]))
         return cls(*players, order)
 
     @classmethod
     def run(cls):
         while True:
-            cls.from_input()
+            thinker = cls.from_input()
+            thinker.make_order()
+
+    def make_order(self):
+        for recipe in sorted(self.orders, key=lambda x: x.price):
+            if self.perspective in recipe:
+                recipe.brew()
+                return
+        self.perspective.wait()
 
 
 if __name__ == '__main__':
