@@ -3,7 +3,7 @@ import unittest
 from main import Ingredient
 
 
-class TestTeamCreateName(unittest.TestCase):
+class TestIngredient(unittest.TestCase):
     def test_Ingredient_tier(self):
         val = 1
 
