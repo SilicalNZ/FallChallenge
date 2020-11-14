@@ -58,6 +58,9 @@ class IngredientInventory:
     def __iter__(self):
         yield from self.ingredients
 
+    def __str__(self):
+        return str([i.tier for i in self.ingredients])
+
 
 class Order(IngredientInventory):
     def __init__(self, ingredients: List[Ingredient], id: int, price: int):
