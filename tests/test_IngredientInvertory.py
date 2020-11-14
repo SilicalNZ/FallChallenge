@@ -1,5 +1,6 @@
 import unittest
 
+from tests.testcases import combinations
 from main import IngredientInventory, Ingredient
 
 
@@ -15,34 +16,15 @@ class TestIngredientInventory(unittest.TestCase):
             self.assertTrue(testcases[item.tier])
 
     def test_IngredientInventory_input(self):
-        testcases = (
-            (0, 0, 0, 0),
-            (1, 0, 0, 0),
-            (0, 1, 0, 0),
-            (0, 0, 1, 0),
-            (0, 0, 0, 1),
-            (1, 1, 1, 1)
-        )
-
-        for testcase in testcases:
+        for testcase in combinations:
             self._IngredientInventory_input(testcase)
 
     def test_IngredientInventory_input_return(self):
         self.assertIsInstance(IngredientInventory.from_input(0, 0, 0, 0), IngredientInventory)
 
     def test_IngredientInventory_contains(self):
-        testcases = [
-            (0, 0, 0, 0),
-            (1, 0, 0, 0),
-            (0, 1, 0, 0),
-            (0, 0, 1, 0),
-            (0, 0, 0, 1),
-            (1, 1, 1, 1),
-            (3, 0, 0, 0)
-        ]
-
-        for x, testcase0 in enumerate(testcases, 1):
-            other_testcases = testcases[:]
+        for x, testcase0 in enumerate(combinations, 1):
+            other_testcases = combinations[:]
             other_testcases.remove(testcase0)
             for testcase1 in other_testcases:
                 compare = IngredientInventory.from_input(*testcase0)
