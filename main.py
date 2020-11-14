@@ -153,7 +153,7 @@ class Thinker:
 
     def make_order(self):
         for recipe in sorted(self.orders, key=lambda x: x.price):
-            if self.perspective in recipe:
+            if recipe in self.perspective:
                 recipe.brew()
                 return
         self.perspective.wait()
