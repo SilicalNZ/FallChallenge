@@ -152,7 +152,7 @@ class Thinker:
             thinker.make_order()
 
     def make_order(self):
-        for recipe in sorted(self.orders, key=lambda x: x.price):
+        for recipe in sorted(self.orders, key=lambda x: x.price, reverse=True):
             if recipe in self.perspective:
                 recipe.brew()
                 return
