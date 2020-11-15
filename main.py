@@ -134,13 +134,15 @@ class Spell:
         return cls(items[0], items[1], id, castable)
 
 
-class OrderInventory:
-    def __init__(self, recipes: List[Order]):
+class Actions:
+    def __init__(self, recipes: List[Order], spells: List[Spell]):
         self.recipes = recipes
+        self.spells = spells
 
     @classmethod
     def from_input(cls):
-        actions = []
+        recipes = []
+        spells = []
         action_count = int(input())  # the number of spells and recipes in play
         for i in range(action_count):
             action_id, action_type, \
@@ -160,15 +162,11 @@ class OrderInventory:
             repeatable = repeatable != "0"
 
             if not price:
-                actions.append(Order.from_input(abs(delta_0), abs(delta_1), abs(delta_2), abs(delta_3), action_id, price))
+                recipes.append(Order.from_input(abs(delta_0), abs(delta_1), abs(delta_2), abs(delta_3), action_id, price))
             else:
-                actions.append(Spell.from_input(delta_0, delta_1, delta_2, delta_3, action_id, castable))
+                spells.append(Spell.from_input(delta_0, delta_1, delta_2, delta_3, action_id, castable))
 
-
-        return cls(actions)
-
-    def __iter__(self):
-        yield from self.recipes
+        return cls(recipes, spells)
 
 
 class Player(RequireIngredientInventory):
@@ -190,14 +188,14 @@ class Player(RequireIngredientInventory):
 
 
 class Thinker:
-    def __init__(self, player1: Player, player2: Player, orders: OrderInventory):
+    def __init__(self, player1: Player, player2: Player, actions: Actions):
         self.perspective = player1
         self.opponent = player2
-        self.orders = orders
+        self.actions = actions
 
     @classmethod
     def from_input(cls):
-        order = OrderInventory.from_input()
+        order = Actions.from_input()
         players = []
         for i in range(2):
             # inv_0: tier-0 ingredients in inventory
@@ -212,7 +210,7 @@ class Thinker:
             thinker.make_order()
 
     def make_order(self):
-        for recipe in sorted(self.orders, key=lambda x: x.price, reverse=True):
+        for recipe in sorted(self.actions.recipes, key=lambda x: x.price, reverse=True):
             if recipe in self.perspective:
                 recipe.brew()
                 return
