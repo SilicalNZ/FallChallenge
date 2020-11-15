@@ -58,6 +58,9 @@ class IngredientInventory:
     def __iter__(self):
         yield from self.ingredients
 
+    def __len__(self):
+        return len(self.ingredients)
+
     def __str__(self):
         return str([i.tier for i in self.ingredients])
 
