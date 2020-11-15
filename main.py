@@ -8,7 +8,6 @@ from functools import lru_cache
 def separate_plus_minus(*args: int) -> Tuple[List[int], List[int]]:
     positive = []
     negative = []
-    print(args)
     for i in args:
         if i > 0:
             positive.append(i)
@@ -112,7 +111,6 @@ class Spell:
     def from_input(cls, delta_0: int, delta_1: int, delta_2: int, delta_3: int, id: int):
         items = []
         for neg_pos in separate_plus_minus(delta_0, delta_1, delta_2, delta_3):
-            print(neg_pos)
             items.append(IngredientInventory.from_input(*neg_pos))
 
         return cls(*items, id)
