@@ -81,8 +81,25 @@ class IngredientInventory:
         return str([i.tier for i in self.ingredients])
 
 
-class Order(IngredientInventory):
-    def __init__(self, ingredients: List[Ingredient], id: int, price: int):
+class RequireIngredientInventory:
+    def __init__(self, ingredients: IngredientInventory):
+        self.ingredients = ingredients
+
+    def __contains__(self, item):
+        return self.ingredients.__contains__(item)
+
+    def __iter__(self):
+        return self.ingredients.__iter__()
+
+    def __len__(self):
+        return self.ingredients.__len__()
+
+    def __str__(self):
+        return self.ingredients.__str__()
+
+
+class Order(RequireIngredientInventory):
+    def __init__(self, ingredients: IngredientInventory, id: int, price: int):
         self.id = id
         self.price = price
         super().__init__(ingredients)
@@ -92,7 +109,7 @@ class Order(IngredientInventory):
         return cls(
             IngredientInventory.from_input(
                 delta_0, delta_1, delta_2, delta_3
-            ).ingredients,
+            ),
             id,
             price
         )
@@ -102,18 +119,19 @@ class Order(IngredientInventory):
 
 
 class Spell:
-    def __init__(self, price: Optional[IngredientInventory], product: IngredientInventory, id):
+    def __init__(self, price: Optional[IngredientInventory], product: IngredientInventory, id, castable):
         self.id = id
+        self.castable = castable
         self.price = price
         self.product = product
 
     @classmethod
-    def from_input(cls, delta_0: int, delta_1: int, delta_2: int, delta_3: int, id: int):
+    def from_input(cls, delta_0: int, delta_1: int, delta_2: int, delta_3: int, id: int, castable):
         items = []
         for neg_pos in separate_plus_minus(delta_0, delta_1, delta_2, delta_3):
             items.append(IngredientInventory.from_input(*neg_pos))
 
-        return cls(*items, id)
+        return cls(items[0], items[1], id, castable)
 
 
 class OrderInventory:
@@ -144,7 +162,7 @@ class OrderInventory:
             if not price:
                 actions.append(Order.from_input(abs(delta_0), abs(delta_1), abs(delta_2), abs(delta_3), action_id, price))
             else:
-                actions.append()
+                actions.append(Spell.from_input(delta_0, delta_1, delta_2, delta_3, action_id, castable))
 
 
         return cls(actions)
@@ -153,9 +171,9 @@ class OrderInventory:
         yield from self.recipes
 
 
-class Player(IngredientInventory):
-    def __init__(self, inventory: List[Ingredient], score: int):
-        super().__init__(inventory)
+class Player(RequireIngredientInventory):
+    def __init__(self, ingredients: IngredientInventory, score: int):
+        super().__init__(ingredients)
         self.score = score
 
     @classmethod
@@ -163,7 +181,7 @@ class Player(IngredientInventory):
         return cls(
             IngredientInventory.from_input(
                 inv_0, inv_1, inv_2, inv_3
-            ).ingredients,
+            ),
             score
         )
 
@@ -185,7 +203,7 @@ class Thinker:
             # inv_0: tier-0 ingredients in inventory
             # score: amount of rupees
             players.append(Player.from_input(*[int(j) for j in input().split()]))
-        return cls(*players, order)
+        return cls(players[0], players[1], order)
 
     @classmethod
     def run(cls):
