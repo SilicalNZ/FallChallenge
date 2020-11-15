@@ -1,8 +1,25 @@
 from __future__ import annotations
 
 import sys
-from typing import List
+from typing import List, Optional, Tuple, List
 from functools import lru_cache
+
+
+def separate_plus_minus(*args: int) -> Tuple[List[int], List[int]]:
+    positive = []
+    negative = []
+    print(args)
+    for i in args:
+        if i > 0:
+            positive.append(i)
+            negative.append(0)
+        elif i < 0:
+            negative.append(abs(i))
+            positive.append(0)
+        elif i == 0:
+            negative.append(0)
+            positive.append(0)
+    return negative, positive
 
 
 class Ingredient:
@@ -85,6 +102,22 @@ class Order(IngredientInventory):
         print(f"BREW {self.id}")
 
 
+class Spell:
+    def __init__(self, price: Optional[IngredientInventory], product: IngredientInventory, id):
+        self.id = id
+        self.price = price
+        self.product = product
+
+    @classmethod
+    def from_input(cls, delta_0: int, delta_1: int, delta_2: int, delta_3: int, id: int):
+        items = []
+        for neg_pos in separate_plus_minus(delta_0, delta_1, delta_2, delta_3):
+            print(neg_pos)
+            items.append(IngredientInventory.from_input(*neg_pos))
+
+        return cls(*items, id)
+
+
 class OrderInventory:
     def __init__(self, recipes: List[Order]):
         self.recipes = recipes
@@ -100,17 +133,22 @@ class OrderInventory:
             castable, repeatable = input().split()
 
             action_id = int(action_id)
-            delta_0 = abs(int(delta_0))
-            delta_1 = abs(int(delta_1))
-            delta_2 = abs(int(delta_2))
-            delta_3 = abs(int(delta_3))
+            delta_0 = int(delta_0)
+            delta_1 = int(delta_1)
+            delta_2 = int(delta_2)
+            delta_3 = int(delta_3)
             price = int(price)
             tome_index = int(tome_index)
             tax_count = int(tax_count)
             castable = castable != "0"
             repeatable = repeatable != "0"
 
-            actions.append(Order.from_input(delta_0, delta_1, delta_2, delta_3, action_id, price))
+            if not price:
+                actions.append(Order.from_input(abs(delta_0), abs(delta_1), abs(delta_2), abs(delta_3), action_id, price))
+            else:
+                actions.append()
+
+
         return cls(actions)
 
     def __iter__(self):
