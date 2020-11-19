@@ -62,6 +62,9 @@ class IngredientInventory:
 
         return cls(ingredients)
 
+    def count(self, ingredient: Ingredient):
+        return self.ingredients.count(ingredient)
+
     def __contains__(self, ingredients: IngredientInventory):
         copy_ingredients = self.ingredients[:]
         for i in ingredients:
