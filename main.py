@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import sys
-from typing import List, Optional, Tuple, List
+from typing import List, Optional, Tuple, Union
 from functools import lru_cache
 
 
@@ -49,6 +49,12 @@ class Ingredient:
     def from_multiple(cls, tier, amount):
         return [getattr(cls, f"tier_{tier}")() for _ in range(amount)]
 
+    def __str__(self):
+        return str(self.tier)
+
+    def __repr__(self):
+        return repr(self.tier)
+
 
 class IngredientInventory:
     def __init__(self, ingredients: List[Ingredient]):
@@ -65,14 +71,16 @@ class IngredientInventory:
     def count(self, ingredient: Ingredient):
         return self.ingredients.count(ingredient)
 
-    def __contains__(self, ingredients: IngredientInventory):
+    def __contains__(self, ingredients: Union[IngredientInventory, Ingredient]):
+        ingredients = (ingredients, ) if isinstance(ingredients, Ingredient) else ingredients
+
         copy_ingredients = self.ingredients[:]
         for i in ingredients:
             if i in copy_ingredients:
                 copy_ingredients.remove(i)
             else:
                 return False
-        return bool(ingredients.ingredients)
+        return bool(ingredients)
 
     def __iter__(self):
         yield from self.ingredients
@@ -81,7 +89,13 @@ class IngredientInventory:
         return len(self.ingredients)
 
     def __str__(self):
-        return str([i.tier for i in self.ingredients])
+        return str(self.ingredients)
+
+    def __repr__(self):
+        return repr(self.ingredients)
+
+    def __bool__(self):
+        return bool(self.ingredients)
 
 
 class RequireIngredientInventory:
@@ -99,6 +113,9 @@ class RequireIngredientInventory:
 
     def __str__(self):
         return self.ingredients.__str__()
+
+    def __repr__(self):
+        return self.ingredients.__repr__()
 
 
 class Order(RequireIngredientInventory):
@@ -122,7 +139,7 @@ class Order(RequireIngredientInventory):
 
 
 class Spell:
-    def __init__(self, price: Optional[IngredientInventory], product: IngredientInventory, id, castable):
+    def __init__(self, price: Optional[IngredientInventory], product: Optional[IngredientInventory], id, castable):
         self.id = id
         self.castable = castable
         self.price = price
@@ -135,6 +152,42 @@ class Spell:
             items.append(IngredientInventory.from_input(*neg_pos))
 
         return cls(items[0], items[1], id, castable)
+
+    def __str__(self):
+        return str((tuple(self.price), tuple(self.product)))
+
+    def __repr__(self):
+        return repr((tuple(self.price), tuple(self.product)))
+
+
+class SpellTechTree:
+    def __init__(self, target: Spell, *spells: Spell):
+        self.target = target
+        self.spells = spells
+
+    def find(self, spc=0, parents=None):
+        all_results = []
+        for ingredient in self.target.price:
+            if parents is not None and ingredient in parents[:-1]:
+                return all_results
+
+            if parents is None:
+                parents = (ingredient, )
+            else:
+                parents = (*parents, ingredient)
+
+            results = []
+            for spell in self.spells:
+                if ingredient in spell.product:
+                    if spell.price:
+                        result = [spell, SpellTechTree(spell, *self.spells).find(spc+4, parents)]
+                        if result[-1]:
+                            results.append(result)
+                    else:
+                        result = spell
+                        results.append(result)
+            all_results.append(results)
+        return all_results
 
 
 class Actions:
