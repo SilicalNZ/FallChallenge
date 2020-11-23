@@ -82,6 +82,12 @@ class IngredientInventory:
                 return False
         return bool(ingredients)
 
+    def difference(self, ingredients: Union[IngredientInventory, Ingredient]):
+        ingredients = (ingredients, ) if isinstance(ingredients, Ingredient) else ingredients
+
+        for ingredient in ingredients:
+            self.ingredients.remove(ingredient)
+
     def __iter__(self):
         yield from self.ingredients
 
@@ -97,6 +103,8 @@ class IngredientInventory:
     def __bool__(self):
         return bool(self.ingredients)
 
+    def copy(self):
+        return self.__class__(self.ingredients[:])
 
 class RequireIngredientInventory:
     def __init__(self, ingredients: IngredientInventory):
@@ -159,35 +167,62 @@ class Spell:
     def __repr__(self):
         return repr((tuple(self.price), tuple(self.product)))
 
+    def cast(self):
+        print(f"CAST {self.id}")
+
+
+class SpellOptions:
+    def __init__(self):
+        self.items = []
+
+    def append(self, value):
+        self.items.append(value)
+
+    def __iter__(self):
+        yield from self.items[0]
+
+
+class SpellSequence:
+    def __init__(self, x, items):
+        self.x = x
+        self.items = items
+
+    def __iter__(self):
+        yield from self.items
+        yield self.x
+
 
 class SpellTechTree:
     def __init__(self, target: Spell, *spells: Spell):
         self.target = target
         self.spells = spells
 
-    def find(self, spc=0, parents=None):
-        all_results = []
+    def find(self, parents=None, depth=0):
+        all_results = [] if depth == 0 else SpellOptions()
         for ingredient in self.target.price:
+            print(ingredient, file=sys.stderr)
             if parents is not None and ingredient in parents[:-1]:
                 return all_results
 
             if parents is None:
                 parents = (ingredient, )
-            else:
+            elif ingredient != parents[-1]:
                 parents = (*parents, ingredient)
 
-            results = []
+            results = SpellOptions()
             for spell in self.spells:
                 if ingredient in spell.product:
                     if spell.price:
-                        result = [spell, SpellTechTree(spell, *self.spells).find(spc+4, parents)]
-                        if result[-1]:
-                            results.append(result)
+                        result = SpellSequence(spell, SpellTechTree(spell, *self.spells).find(parents, depth=depth+1))
                     else:
-                        result = spell
-                        results.append(result)
+                        result = SpellSequence(spell, [])
+                    results.append(result)
             all_results.append(results)
         return all_results
+
+    def path(self):
+        for i in self.find():
+            yield from i
 
 
 class Actions:
@@ -263,7 +298,7 @@ class Thinker:
     def run(cls):
         while True:
             thinker = cls.from_input()
-            thinker.make_order()
+            thinker.brew_spells()
 
     def make_order(self):
         for recipe in sorted(self.actions.recipes, key=lambda x: x.price, reverse=True):
@@ -271,6 +306,17 @@ class Thinker:
                 recipe.brew()
                 return
         self.perspective.wait()
+
+    def brew_spells(self):
+        for recipe in self.actions.recipes[:1]:
+            inventory = self.perspective.ingredients.copy()
+
+            for spell in SpellTechTree(Spell(recipe.ingredients, None, None, None), *self.actions.spells).path():
+                if spell.product in inventory:
+                    inventory.difference(spell.product)
+                    pass
+                else:
+                    spell.cast()
 
 
 if __name__ == '__main__':
